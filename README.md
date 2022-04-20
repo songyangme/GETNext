@@ -1,3 +1,3 @@
 # GETNext
 
-Code will release soon.
+Code will be released soon
