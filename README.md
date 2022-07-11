@@ -2,7 +2,7 @@
 
 This is the pytorch implementation of paper "GETNext: Trajectory Flow Map Enhanced Transformer for Next POI
 Recommendation"
-![model](figures/model.png)
+![model](figures/model strcture.png)
 
 ## Installation
 
