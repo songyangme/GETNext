@@ -20,15 +20,11 @@ from tqdm import tqdm
 from dataloader import load_graph_adj_mtx, load_graph_node_features
 from model import GCN, NodeAttnMap, UserEmbeddings, Time2Vec, CategoryEmbeddings, FuseEmbeddings, TransformerModel
 from param_parser import parameter_parser
-from utils import increment_path, calculate_laplacian_matrix, zipdir, init_seeds, top_k_acc_last_timestep, \
+from utils import increment_path, calculate_laplacian_matrix, zipdir, top_k_acc_last_timestep, \
     mAP_metric_last_timestep, MRR_metric_last_timestep, maksed_mse_loss
 
 
-# os.environ["PATH"] += os.pathsep + r'C:\Program Files\Graphviz\bin'
-
 def train(args):
-    # Set seeds
-    init_seeds(args.seed)
     args.save_dir = increment_path(Path(args.project) / args.name, exist_ok=args.exist_ok, sep='-')
     if not os.path.exists(args.save_dir): os.makedirs(args.save_dir)
 
@@ -57,7 +53,7 @@ def train(args):
     zipdir(pathlib.Path().absolute(), zipf, include_format=['.py'])
     zipf.close()
 
-    # ====================== Load data ======================
+    # %% ====================== Load data ======================
     # Read check-in train data
     train_df = pd.read_csv(args.data_train)
     val_df = pd.read_csv(args.data_val)
@@ -119,7 +115,7 @@ def train(args):
     # Print user-trajectories count
     traj_list = list(set(train_df['trajectory_id'].tolist()))
 
-    # %% Define Dataset class
+    # %% ====================== Define Dataset ======================
     class TrajectoryDatasetTrain(Dataset):
         def __init__(self, train_df):
             self.df = train_df
@@ -202,7 +198,7 @@ def train(args):
         def __getitem__(self, index):
             return (self.traj_seqs[index], self.input_seqs[index], self.label_seqs[index])
 
-    # %% Define dataloader
+    # %% ====================== Define dataloader ======================
     print('Prepare dataloader...')
     train_dataset = TrajectoryDatasetTrain(train_df)
     val_dataset = TrajectoryDatasetVal(val_df)
@@ -218,7 +214,8 @@ def train(args):
                             pin_memory=True, num_workers=args.workers,
                             collate_fn=lambda x: x)
 
-    # %% Model1: POI embedding model
+    # %% ====================== Build Models ======================
+    # Model1: POI embedding model
     if isinstance(X, np.ndarray):
         X = torch.from_numpy(X)
         A = torch.from_numpy(A)
@@ -231,7 +228,7 @@ def train(args):
                           noutput=args.poi_embed_dim,
                           dropout=args.gcn_dropout)
 
-    # %% Model1: Node Attn Model
+    # Node Attn Model
     node_attn_model = NodeAttnMap(in_features=X.shape[1], nhid=args.node_attn_nhid, use_mask=False)
 
     # %% Model2: User embedding model, nn.embedding
@@ -331,7 +328,7 @@ def train(args):
 
         return y_pred_poi_adjusted
 
-    # %% Train
+    # %% ====================== Train ======================
     poi_embed_model = poi_embed_model.to(device=args.device)
     node_attn_model = node_attn_model.to(device=args.device)
     user_embed_model = user_embed_model.to(device=args.device)

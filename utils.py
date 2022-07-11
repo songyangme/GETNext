@@ -1,7 +1,6 @@
 import glob
 import math
 import os
-import random
 import re
 from pathlib import Path
 
@@ -16,12 +15,6 @@ def fit_delimiter(string='', length=80, delimiter="="):
     half_len = math.floor(result_len / 2)
     result = delimiter * half_len + string + delimiter * half_len
     return result
-
-
-def init_seeds(seed=0):
-    random.seed(seed)
-    np.random.seed(seed)
-    init_torch_seeds(seed)
 
 
 def init_torch_seeds(seed=0):
